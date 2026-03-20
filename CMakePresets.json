@@ -1,0 +1,105 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
+        },
+        {
+            "name": "mingw-x86-base",
+            "hidden": true,
+            "inherits": "base",
+            "toolchainFile": "${sourceDir}/cmake/mingw-w64-i686.cmake"
+        },
+        {
+            "name": "mingw-x86-debug",
+            "displayName": "MinGW i686 (x86) Debug",
+            "inherits": "mingw-x86-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "mingw-x86-release",
+            "displayName": "MinGW i686 (x86) Release",
+            "inherits": "mingw-x86-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "mingw-x64-base",
+            "hidden": true,
+            "inherits": "base",
+            "toolchainFile": "${sourceDir}/cmake/mingw-w64-x86_64.cmake"
+        },
+        {
+            "name": "mingw-x64-debug",
+            "displayName": "MinGW x86_64 (x64) Debug",
+            "inherits": "mingw-x64-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "mingw-x64-release",
+            "displayName": "MinGW x86_64 (x64) Release",
+            "inherits": "mingw-x64-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "native-debug",
+            "displayName": "Native Debug (MSVC/Clang)",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "native-release",
+            "displayName": "Native Release (MSVC/Clang)",
+            "inherits": "base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "mingw-x86-debug",
+            "configurePreset": "mingw-x86-debug"
+        },
+        {
+            "name": "mingw-x86-release",
+            "configurePreset": "mingw-x86-release"
+        },
+        {
+            "name": "mingw-x64-debug",
+            "configurePreset": "mingw-x64-debug"
+        },
+        {
+            "name": "mingw-x64-release",
+            "configurePreset": "mingw-x64-release"
+        },
+        {
+            "name": "native-debug",
+            "configurePreset": "native-debug"
+        },
+        {
+            "name": "native-release",
+            "configurePreset": "native-release"
+        }
+    ]
+}
