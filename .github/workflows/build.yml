@@ -21,7 +21,7 @@ jobs:
     name: MSVC ${{ matrix.arch }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -34,7 +34,7 @@ jobs:
         run: cmake --build --preset ${{ matrix.preset }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: crashloggerpp-${{ matrix.arch }}
           path: build/${{ matrix.preset }}/crashloggerpp.dll
