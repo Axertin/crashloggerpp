@@ -57,11 +57,11 @@ crashloggerpp::load(L"path/to/crashloggerpp.dll");
 // Install the crash handler
 crashloggerpp::install(L"C:\\MyApp\\crashes", true);
 
-// On shutdown uninstalls the handler and frees the DLL
-crashloggerpp::unload();
+// On shutdown — uninstalls the handler and frees the DLL
+crashloggerpp::uninstall();
 ```
 
-`load()` with no arguments looks for `crashloggerpp.dll` in the standard DLL search path.
+`load()` with no arguments looks for `crashloggerpp.dll` in the standard DLL search path. `uninstall()` removes the handler and frees the DLL in one call.
 
 ### Manual loading
 

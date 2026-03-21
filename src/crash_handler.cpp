@@ -56,7 +56,12 @@ struct CLPP_MINIDUMP_EXCEPTION_INFORMATION {
 };
 
 // StackWalk64 structures (mirror dbghelp.h layout)
-enum CLPP_ADDRESS_MODE { AddrMode1616 = 0, AddrMode1632, AddrModeReal, AddrModeFlat };
+enum CLPP_ADDRESS_MODE {
+  AddrMode1616 = 0,
+  AddrMode1632,
+  AddrModeReal,
+  AddrModeFlat
+};
 
 struct CLPP_ADDRESS64 {
   DWORD64 Offset;
@@ -273,8 +278,8 @@ static int formatStackTrace(char *buf, int bufSize, int offset, CONTEXT *ctx) {
       if (!ok || frame.AddrPC.Offset == 0)
         break;
 
-      offset = resolveFrame(buf, bufSize, offset, process, i,
-                            frame.AddrPC.Offset);
+      offset =
+          resolveFrame(buf, bufSize, offset, process, i, frame.AddrPC.Offset);
     }
   } else {
     // Fallback: CaptureStackBackTrace (captures handler stack, not fault stack)
@@ -375,8 +380,8 @@ static void writeMinidump(EXCEPTION_POINTERS *exInfo) {
   wchar_t dumpPath[MAX_PATH];
   _snwprintf(dumpPath, MAX_PATH,
              L"%s\\crash_%04d%02d%02d_%02d%02d%02d_%03d_%lu.dmp",
-             g_CrashDirPath, st.wYear, st.wMonth, st.wDay, st.wHour,
-             st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
+             g_CrashDirPath, st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute,
+             st.wSecond, st.wMilliseconds, GetCurrentProcessId());
 
   HANDLE hFile = CreateFileW(dumpPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
                              FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -505,8 +510,7 @@ static LONG CALLBACK crashHandler(EXCEPTION_POINTERS *exInfo) {
     _snwprintf(filePath, MAX_PATH,
                L"%s\\crash_%04d%02d%02d_%02d%02d%02d_%03d_%lu.log",
                g_CrashDirPath, st.wYear, st.wMonth, st.wDay, st.wHour,
-               st.wMinute, st.wSecond, st.wMilliseconds,
-               GetCurrentProcessId());
+               st.wMinute, st.wSecond, st.wMilliseconds, GetCurrentProcessId());
 
     HANDLE hFile = CreateFileW(filePath, GENERIC_WRITE, 0, nullptr,
                                CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
