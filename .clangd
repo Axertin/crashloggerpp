@@ -1,0 +1,19 @@
+CompileFlags:
+  Add:
+    - --target=x86_64-w64-mingw32
+    - -isystem/usr/x86_64-w64-mingw32/include
+    - -isystem/usr/lib/gcc/x86_64-w64-mingw32/13-win32/include/c++
+    - -isystem/usr/lib/gcc/x86_64-w64-mingw32/13-win32/include/c++/x86_64-w64-mingw32
+    - -isystem/usr/lib/gcc/x86_64-w64-mingw32/13-win32/include
+    - -ferror-limit=0
+  Compiler: clang++
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None
+  Suppress:
+    - pp_file_not_found
+    - unknown_type_name
+    - undeclared_var_use
+    - builtin_definition
+    - conflicting_types

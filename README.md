@@ -1,5 +1,7 @@
 # crashloggerpp
 
+[![Build](https://github.com/Axertin/crashloggerpp/actions/workflows/build.yml/badge.svg)](https://github.com/Axertin/crashloggerpp/actions/workflows/build.yml)
+
 A Windows DLL that installs a vectored exception handler (VEH) to catch fatal crashes in the host process and log detailed reports. Intended to be loaded by another module that calls into it to start and stop crash logging.
 
 ## What it logs
@@ -32,13 +34,15 @@ cmake --preset mingw-x64-debug
 cmake --build --preset mingw-x64-debug
 ```
 
-Replace `debug` with `release` for optimized builds. Native MSVC presets (`native-x86-release`, `native-x64-release`, etc.) are also available for building on Windows directly.
+Replace `debug` with `release` for optimized builds. Native MSVC presets (`native-x86-release`, `native-x64-release`, etc.) are also available for building on Windows directly. Since these use Ninja, the target architecture is determined by your MSVC environment: run from the matching VS Developer Command Prompt (x86 or x64). In CI, this is handled by `ilammy/msvc-dev-cmd`.
 
 The output DLL is in `build/<preset>/`.
 
+DbgHelp (`dbghelp.dll`) is loaded dynamically at runtime for symbol resolution and minidump support. It is not a build-time dependency — the DLL only links against `psapi`.
+
 ## Usage
 
-crashloggerpp is designed to be loaded into a target process at runtime by another module — either injected or chain-loaded. A standalone consumer header is provided for easy integration, or you can resolve the exports manually.
+crashloggerpp is designed to be loaded into a target process at runtime by another module, either injected or chain-loaded. A standalone consumer header is provided for easy integration, or you can resolve the exports manually.
 
 ### Using the consumer header
 
@@ -86,6 +90,8 @@ FreeLibrary(hCrashLogger);
 | `enableMinidump` | `bool`           | `false`   | Write a `.dmp` minidump file alongside the crash log.                       |
 
 Note: the raw `extern "C"` exports (`clpp_install`, `clpp_uninstall`) use `int` instead of `bool` for C ABI compatibility. The consumer header handles this conversion automatically.
+
+Calling `install()` multiple times is safe. Subsequent calls are ignored while a handler is already registered. Call `uninstall()` first if you need to reconfigure.
 
 ### Language examples
 

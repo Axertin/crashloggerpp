@@ -10,8 +10,7 @@
 
 #include <windows.h>
 
-namespace crashloggerpp
-{
+namespace crashloggerpp {
 
 using InstallFn = void (*)(const wchar_t *, int);
 using UninstallFn = void (*)();
@@ -20,55 +19,52 @@ inline HMODULE g_Module = nullptr;
 inline InstallFn g_Install = nullptr;
 inline UninstallFn g_Uninstall = nullptr;
 
-inline bool load(const wchar_t *dllPath = L"crashloggerpp.dll")
-{
-    if (g_Module)
-        return true;
-
-    g_Module = LoadLibraryW(dllPath);
-    if (!g_Module)
-        return false;
-
-    g_Install = reinterpret_cast<InstallFn>(GetProcAddress(g_Module, "clpp_install"));
-    g_Uninstall = reinterpret_cast<UninstallFn>(GetProcAddress(g_Module, "clpp_uninstall"));
-
-    if (!g_Install || !g_Uninstall)
-    {
-        FreeLibrary(g_Module);
-        g_Module = nullptr;
-        g_Install = nullptr;
-        g_Uninstall = nullptr;
-        return false;
-    }
-
+inline bool load(const wchar_t *dllPath = L"crashloggerpp.dll") {
+  if (g_Module)
     return true;
-}
 
-inline void unload()
-{
-    if (g_Uninstall)
-        g_Uninstall();
+  g_Module = LoadLibraryW(dllPath);
+  if (!g_Module)
+    return false;
 
-    if (g_Module)
-    {
-        FreeLibrary(g_Module);
-        g_Module = nullptr;
-    }
+  g_Install =
+      reinterpret_cast<InstallFn>(GetProcAddress(g_Module, "clpp_install"));
+  g_Uninstall =
+      reinterpret_cast<UninstallFn>(GetProcAddress(g_Module, "clpp_uninstall"));
 
+  if (!g_Install || !g_Uninstall) {
+    FreeLibrary(g_Module);
+    g_Module = nullptr;
     g_Install = nullptr;
     g_Uninstall = nullptr;
+    return false;
+  }
+
+  return true;
 }
 
-inline void install(const wchar_t *crashDirectory = nullptr, bool enableMinidump = false)
-{
-    if (g_Install)
-        g_Install(crashDirectory, enableMinidump ? 1 : 0);
+inline void unload() {
+  if (g_Uninstall)
+    g_Uninstall();
+
+  if (g_Module) {
+    FreeLibrary(g_Module);
+    g_Module = nullptr;
+  }
+
+  g_Install = nullptr;
+  g_Uninstall = nullptr;
 }
 
-inline void uninstall()
-{
-    if (g_Uninstall)
-        g_Uninstall();
+inline void install(const wchar_t *crashDirectory = nullptr,
+                    bool enableMinidump = false) {
+  if (g_Install)
+    g_Install(crashDirectory, enableMinidump ? 1 : 0);
+}
+
+inline void uninstall() {
+  if (g_Uninstall)
+    g_Uninstall();
 }
 
 } // namespace crashloggerpp

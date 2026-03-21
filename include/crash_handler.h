@@ -11,16 +11,15 @@
 #define CLPP_API __declspec(dllimport)
 #endif
 
-namespace crashloggerpp
-{
+namespace crashloggerpp {
 
-void install(const wchar_t *crashDirectory = nullptr, bool enableMinidump = false);
+void install(const wchar_t *crashDirectory = nullptr,
+             bool enableMinidump = false);
 void uninstall();
 
 } // namespace crashloggerpp
 
-extern "C"
-{
+extern "C" {
 CLPP_API void clpp_install(const wchar_t *crashDirectory, int enableMinidump);
 CLPP_API void clpp_uninstall();
 }
