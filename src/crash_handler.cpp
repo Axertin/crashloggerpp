@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Axertin
+
 #include "crash_handler.h"
 
 #include <atomic>

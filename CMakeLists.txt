@@ -22,6 +22,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(crashloggerpp SHARED
     src/dllmain.cpp
     src/crash_handler.cpp
+    src/crashloggerpp.def
 )
 
 target_compile_definitions(crashloggerpp PRIVATE CRASHLOGGERPP_EXPORTS)

@@ -32,31 +32,45 @@ cmake --preset mingw-x64-debug
 cmake --build --preset mingw-x64-debug
 ```
 
-Replace `debug` with `release` for optimized builds. Native MSVC/Clang presets (`native-debug`, `native-release`) are also available for building on Windows directly.
+Replace `debug` with `release` for optimized builds. Native MSVC presets (`native-x86-release`, `native-x64-release`, etc.) are also available for building on Windows directly.
 
-The output DLL is in `build/<preset>/libcrashloggerpp.dll`.
+The output DLL is in `build/<preset>/`.
 
 ## Usage
 
-crashloggerpp is designed to be loaded into a target process at runtime by another module — either injected or chain-loaded. The loading module is responsible for calling `install()` and `uninstall()` via `GetProcAddress`.
+crashloggerpp is designed to be loaded into a target process at runtime by another module — either injected or chain-loaded. A standalone consumer header is provided for easy integration, or you can resolve the exports manually.
 
-### Loading and calling from another module
+### Using the consumer header
+
+The easiest way to use crashloggerpp is with the provided `crashloggerpp.h` header, which handles loading the DLL and resolving symbols for you. No link-time dependency is needed, just drop the header and DLL into your project.
 
 ```cpp
-// Load the DLL into the process
-HMODULE hCrashLogger = LoadLibraryW(L"libcrashloggerpp.dll");
+#include "crashloggerpp.h"
 
-// Resolve the exported functions
-using InstallFn = void (*)(const wchar_t *, int);
-using UninstallFn = void (*)();
+// Load the DLL (returns false on failure)
+crashloggerpp::load(L"path/to/crashloggerpp.dll");
 
-auto install = reinterpret_cast<InstallFn>(GetProcAddress(hCrashLogger, "clpp_install"));
-auto uninstall = reinterpret_cast<UninstallFn>(GetProcAddress(hCrashLogger, "clpp_uninstall"));
+// Install the crash handler
+crashloggerpp::install(L"C:\\MyApp\\crashes", true);
 
-// Install with defaults (logs to <cwd>\logs\crashes, no minidumps)
-install(nullptr, 0);
+// On shutdown uninstalls the handler and frees the DLL
+crashloggerpp::unload();
+```
 
-// Or specify a crash directory and enable minidumps
+`load()` with no arguments looks for `crashloggerpp.dll` in the standard DLL search path.
+
+### Manual loading
+
+If you prefer not to use the consumer header, you can load the DLL and resolve the `extern "C"` exports directly:
+
+```cpp
+HMODULE hCrashLogger = LoadLibraryW(L"crashloggerpp.dll");
+
+auto install = reinterpret_cast<void (*)(const wchar_t *, int)>(
+    GetProcAddress(hCrashLogger, "clpp_install"));
+auto uninstall = reinterpret_cast<void (*)()>(
+    GetProcAddress(hCrashLogger, "clpp_uninstall"));
+
 install(L"C:\\MyApp\\crashes", 1);
 
 // On shutdown
@@ -66,7 +80,103 @@ FreeLibrary(hCrashLogger);
 
 ### Parameters
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
+| Parameter        | Type             | Default   | Description                                                                 |
+| ---------------- | ---------------- | --------- | --------------------------------------------------------------------------- |
 | `crashDirectory` | `const wchar_t*` | `nullptr` | Absolute path for crash output. `nullptr` defaults to `<cwd>\logs\crashes`. |
-| `enableMinidump` | `bool` | `false` | Write a `.dmp` minidump file alongside the crash log. |
+| `enableMinidump` | `bool`           | `false`   | Write a `.dmp` minidump file alongside the crash log.                       |
+
+Note: the raw `extern "C"` exports (`clpp_install`, `clpp_uninstall`) use `int` instead of `bool` for C ABI compatibility. The consumer header handles this conversion automatically.
+
+### Language examples
+
+#### C#
+
+```csharp
+using System.Runtime.InteropServices;
+
+static class CrashLoggerPP
+{
+    [DllImport("crashloggerpp.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
+    public static extern void clpp_install(string? crashDirectory, int enableMinidump);
+
+    [DllImport("crashloggerpp.dll", CallingConvention = CallingConvention.Cdecl)]
+    public static extern void clpp_uninstall();
+}
+
+// Usage
+CrashLoggerPP.clpp_install(@"C:\MyApp\crashes", 1);
+
+// On shutdown
+CrashLoggerPP.clpp_uninstall();
+```
+
+#### Rust
+
+```rust
+extern "C" {
+    fn clpp_install(crash_directory: *const u16, enable_minidump: i32);
+    fn clpp_uninstall();
+}
+
+// Usage (with a null-terminated UTF-16 path)
+let path: Vec<u16> = "C:\\MyApp\\crashes\0".encode_utf16().collect();
+unsafe { clpp_install(path.as_ptr(), 1) };
+
+// On shutdown
+unsafe { clpp_uninstall() };
+```
+
+Or load at runtime with `libloading`:
+
+```rust
+let lib = unsafe { libloading::Library::new("crashloggerpp.dll").unwrap() };
+let install: libloading::Symbol<unsafe extern "C" fn(*const u16, i32)> =
+    unsafe { lib.get(b"clpp_install").unwrap() };
+let uninstall: libloading::Symbol<unsafe extern "C" fn()> =
+    unsafe { lib.get(b"clpp_uninstall").unwrap() };
+```
+
+#### Lua (LuaJIT FFI)
+
+```lua
+local ffi = require("ffi")
+
+ffi.cdef[[
+    void clpp_install(const wchar_t *crashDirectory, int enableMinidump);
+    void clpp_uninstall();
+]]
+
+local clpp = ffi.load("crashloggerpp")
+
+-- Install with defaults
+clpp.clpp_install(nil, 0)
+
+-- Or with a specific path
+local path = ffi.new("wchar_t[?]", 32)
+ffi.copy(path, "C:\\MyApp\\crashes", 30)  -- wchar_t copy
+clpp.clpp_install(path, 1)
+
+-- On shutdown
+clpp.clpp_uninstall()
+```
+
+#### Python (ctypes)
+
+```python
+import ctypes
+
+clpp = ctypes.CDLL("crashloggerpp.dll")
+clpp.clpp_install.argtypes = [ctypes.c_wchar_p, ctypes.c_int]
+clpp.clpp_install.restype = None
+clpp.clpp_uninstall.argtypes = []
+clpp.clpp_uninstall.restype = None
+
+clpp.clpp_install(r"C:\MyApp\crashes", 1)
+
+# On shutdown
+clpp.clpp_uninstall()
+```
+
+## License
+
+[MIT](LICENSE)
