@@ -44,9 +44,6 @@ inline bool load(const wchar_t *dllPath = L"crashloggerpp.dll") {
 }
 
 inline void unload() {
-  if (g_Uninstall)
-    g_Uninstall();
-
   if (g_Module) {
     FreeLibrary(g_Module);
     g_Module = nullptr;
