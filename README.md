@@ -12,7 +12,7 @@ When a fatal exception occurs (access violation, stack overflow, divide by zero,
 - Access violation details (read/write/DEP and target address)
 - Faulting module and offset
 - Thread ID
-- Stack trace with symbol resolution (via DbgHelp)
+- Stack trace with symbol resolution (walked via `RtlVirtualUnwind` on x64, EBP chain on x86; symbols resolved via DbgHelp when available)
 - Register dump (x86 or x64 depending on build)
 - List of all loaded modules
 
